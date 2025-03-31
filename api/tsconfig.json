@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node23/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "allowJs": true,
+    "checkJs": true
+  },
+//  "include": ["api/**/*"],
+//  "exclude": ["node_modules"]
+}
