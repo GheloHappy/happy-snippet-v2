@@ -1,12 +1,12 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-
-// import usersRoute from './routes/users.route';
+import 'dotenv/config';
+import usersRoute from './routes/user-routes.js';
 // import snippetRoute from './routes/snippet.route';
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 app.use(cors({
     origin: ['https://snippet.ghelo.site'],
@@ -17,7 +17,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// app.use(usersRoute);
+app.use(usersRoute);
 // app.use(snippetRoute);
 
 app.get('/', (req: Request, res: Response) => {
