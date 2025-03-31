@@ -1,6 +1,5 @@
 import createClient from "../utils/db/client.js";
 import bcrypt from 'bcryptjs';
-import {Client} from "pg";
 import {User} from "../types/user-types.js";
 import * as console from "node:console";
 
