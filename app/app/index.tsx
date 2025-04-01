@@ -6,7 +6,7 @@ export default function Login() {
     return (
         <>
             <View className="flex-1 items-center justify-center w-full">
-                <Text>Login</Text>
+                <Text className="text-2xl font-bold">Login</Text>
             </View>
         </>
     )
