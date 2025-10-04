@@ -55,44 +55,45 @@ const createTables = async (client: ReturnType<typeof getClient> extends Promise
     //     await client.query(createTableQuery);
     //     console.log(`Table ${table.name} created successfully`);
     // }
+}
 
-    const createViews = async (client: ReturnType<typeof getClient> extends Promise<infer U> ? U : never) => {
-        const views: { name: string; query: string }[] = [
-            // Add your views here, e.g.
-            // {
-            //   name: "user_information",
-            //   query: `CREATE OR REPLACE VIEW user_information AS ...`,
-            // },
-        ];
+const createViews = async (client: ReturnType<typeof getClient> extends Promise<infer U> ? U : never) => {
+    const views: { name: string; query: string }[] = [
+        // Add your views here, e.g.
+        // {
+        //   name: "user_information",
+        //   query: `CREATE OR REPLACE VIEW user_information AS ...`,
+        // },
+    ];
 
-        for (const view of views) {
-            await client.query(view.query);
-            console.log(`View ${view.name} created successfully`);
-        }
-    };
+    for (const view of views) {
+        await client.query(view.query);
+        console.log(`View ${view.name} created successfully`);
+    }
+};
 
-    const runMigration = async () => {
-        const client = await getClient();
+const runMigration = async () => {
+    const client = await getClient();
 
-        try {
-            await client.query("BEGIN");
-            console.log("Transaction started");
+    try {
+        await client.query("BEGIN");
+        console.log("Transaction started");
 
-            await createTables(client);
-            await createViews(client);
+        await createTables(client);
+        await createViews(client);
 
-            await client.query("COMMIT");
-            console.log("Transaction committed");
-            console.log("✅ Migration completed");
-        } catch (error) {
-            await client.query("ROLLBACK");
-            console.error("Transaction rolled back due to error:", error);
-            console.error("❌ Migration failed");
-        } finally {
-            // Since this is a single client, close connection if this script is a one-off
-            await client.end();
-            console.log("Client connection closed");
-        }
-    };
+        await client.query("COMMIT");
+        console.log("Transaction committed");
+        console.log("✅ Migration completed");
+    } catch (error) {
+        await client.query("ROLLBACK");
+        console.error("Transaction rolled back due to error:", error);
+        console.error("❌ Migration failed");
+    } finally {
+        // Since this is a single client, close connection if this script is a one-off
+        await client.end();
+        console.log("Client connection closed");
+    }
+};
 
-    runMigration();
+runMigration();
