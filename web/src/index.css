@@ -5,30 +5,36 @@
 
 /* ✅ reusable utility */
 @layer utilities {
-  /* reusable */
-  .btn-transition {
-    @apply transform transition-all duration-300 hover:-translate-y-0.5;
-  }
-  
-  /* Default bg*/
-  .bg-default {
-    @apply bg-gradient-to-br from-gray-950 via-red-950 to-black;
-  }
 
-  /* styled buttons */
-  .btn-primary {
-    @apply bg-green-600 text-white px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover:bg-gradient-to-r hover:from-green-600 hover:to-green-700;
-  }
+    /* reusable */
+    /* .btn-transition {
+        @apply transform transition-all duration-300 hover: -translate-y-0.5;
+    } */
 
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover:bg-gradient-to-r hover:from-gray-200 hover:to-gray-300;
-  }
+    /* Default bg*/
+    .bg-default {
+        @apply bg-gradient-to-br from-gray-950 via-red-950 to-black;
+    }
 
-  .btn-danger {
-    @apply bg-red-600 text-white px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover:bg-gradient-to-r hover:from-red-600 hover:to-red-700;
-  }
+    /* text title */
+    .text-heading {
+        @apply font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500;
+    }
 
-  .icon-btn {
-    @apply cursor-pointer hover:text-green-600;
-  }
+    /* styled buttons */
+    /* .btn-primary {
+        @apply bg-green-600 text-white px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover: bg-gradient-to-r hover:from-green-600 hover:to-green-700;
+    }
+
+    .btn-secondary {
+        @apply bg-gray-200 text-gray-700 px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover: bg-gradient-to-r hover:from-gray-200 hover:to-gray-300;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white px-6 py-2 rounded-lg whitespace-nowrap flex items-center gap-2 font-semibold shadow-md hover: bg-gradient-to-r hover:from-red-600 hover:to-red-700;
+    }
+
+    .icon-btn {
+        @apply cursor-pointer hover: text-green-600;
+    } */
 }
