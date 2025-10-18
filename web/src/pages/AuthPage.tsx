@@ -6,12 +6,13 @@ import {
 export default function AuthPage() {
 
     return (
-        <div className="min-h-screen flex justify-center items-center p-5 bg-default">
-            <div className="flex flex-col w-full items-center justify-center max-w-5xl md:h-[50vh] md:overflow-hidden gap-y-4">
-                <Skull className="w-16 h-16 text-red-500 animate-pulse" />
-                <h1 className="text-2xl text-heading">Happy Snippet</h1>
-                <p className="text-gray-400">Sign in to access your snippets</p>
-
+        <div className="min-h-screen bg-gradient-to-br from-gray-950 via-red-950 to-black flex items-center justify-center px-4 py-8">
+            <div className="flex flex-col max-w-md w-full items-center justify-center md:h-[50vh] md:overflow-hidden gap-y-4">
+                <div className='flex flex-col items-center gap-y-2'>
+                    <Skull className="w-16 h-16 text-red-500 animate-pulse" />
+                    <h1 className="text-5xl text-heading">Happy Snippet</h1>
+                    <p className="text-gray-400">Sign in to access your snippets</p>
+                </div>
                 <div className='w-full bg-gray-900 border-red-900/30 shadow-2xl rounded-md p-4 text-red-400 gap-6 flex flex-col'>
                     <div>
                         <label className='font-semibold text-red-400'>Email or Username</label>
