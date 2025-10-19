@@ -1,8 +1,5 @@
-import {
-    Skull
-} from 'lucide-react';
+import { Smile } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
 
 export default function AuthPage() {
     const [currentPage, setCurrentPage] = useState('login');
@@ -26,11 +23,11 @@ export default function AuthPage() {
                 <div className="min-h-screen bg-gradient-to-br from-gray-950 via-red-950 to-black flex items-center justify-center px-4 py-8">
                     <div className="max-w-md w-full">
                         <div className="text-center mb-8">
-                            <Skull className="w-16 h-16 text-red-500 animate-pulse mx-auto mb-4" />
+                            <Smile className="w-16 h-16 text-red-500 animate-pulse mx-auto mb-4" />
                             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-2">
                                 Welcome to Happy Snippets
                             </h1>
-                            <p className="text-gray-400">Sign in to access your snippets</p>
+                            <p className="text-gray-400">Sign in to access your code snippets</p>
                         </div>
 
                         <div className="bg-gray-900 rounded-2xl shadow-2xl border border-red-900/30 p-8">
@@ -39,7 +36,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Email or Username</label>
                                     <input
                                         type="text"
-                                        placeholder="Enter your identity..."
+                                        placeholder="Enter your email or username"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -48,7 +45,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Password</label>
                                     <input
                                         type="password"
-                                        placeholder="Enter your secret..."
+                                        placeholder="Enter your password"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -67,7 +64,7 @@ export default function AuthPage() {
                                     onClick={() => { setIsLoggedIn(true); setCurrentPage('home'); }}
                                     className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-red-900/50"
                                 >
-                                    Enter the Shadow Realm
+                                    Sign In
                                 </button>
 
                                 <div className="relative">
@@ -100,7 +97,7 @@ export default function AuthPage() {
                                 <p className="text-center text-gray-400 text-sm">
                                     Don't have an account?{' '}
                                     <button onClick={() => setCurrentPage('register')} className="text-orange-500 hover:text-red-500 font-semibold transition-colors">
-                                        Join the darkness
+                                        Create an account
                                     </button>
                                 </p>
                             </div>
@@ -111,11 +108,11 @@ export default function AuthPage() {
                 <div className="min-h-screen bg-gradient-to-br from-gray-950 via-red-950 to-black flex items-center justify-center px-4 py-8">
                     <div className="max-w-md w-full">
                         <div className="text-center mb-8">
-                            <Skull className="w-16 h-16 text-red-500 animate-pulse mx-auto mb-4" />
+                            <Smile className="w-16 h-16 text-red-500 animate-pulse mx-auto mb-4" />
                             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-2">
-                                Join the Darkness
+                                Create Your Account
                             </h1>
-                            <p className="text-gray-400">Create your account and embrace the shadows</p>
+                            <p className="text-gray-400">Create your account to start coding</p>
                         </div>
 
                         <div className="bg-gray-900 rounded-2xl shadow-2xl border border-red-900/30 p-8">
@@ -124,7 +121,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Username</label>
                                     <input
                                         type="text"
-                                        placeholder="Enter your username..."
+                                        placeholder="Choose a username"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -133,7 +130,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Email</label>
                                     <input
                                         type="email"
-                                        placeholder="Enter your email..."
+                                        placeholder="Enter your email address"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -142,7 +139,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Password</label>
                                     <input
                                         type="password"
-                                        placeholder="Create your secret..."
+                                        placeholder="Create a password"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -151,7 +148,7 @@ export default function AuthPage() {
                                     <label className="block text-sm font-semibold text-red-400 mb-2">Confirm Password</label>
                                     <input
                                         type="password"
-                                        placeholder="Confirm your secret..."
+                                        placeholder="Confirm your password"
                                         className="w-full px-4 py-3 rounded-lg bg-gray-950 border-2 border-red-900/30 text-gray-300 placeholder-gray-600 focus:border-red-600 focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -161,11 +158,11 @@ export default function AuthPage() {
                                     <label className="text-gray-400 text-sm">
                                         I accept the{' '}
                                         <button className="text-orange-500 hover:text-red-500 transition-colors">
-                                            Terms of Darkness
+                                            Terms of Service
                                         </button>
                                         {' '}and{' '}
                                         <button className="text-orange-500 hover:text-red-500 transition-colors">
-                                            Privacy Pact
+                                            Privacy Policy
                                         </button>
                                     </label>
                                 </div>
@@ -174,7 +171,7 @@ export default function AuthPage() {
                                     onClick={() => { setIsLoggedIn(true); setCurrentPage('home'); }}
                                     className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-red-900/50"
                                 >
-                                    Embrace the Shadows
+                                    Register
                                 </button>
 
                                 <div className="relative">
@@ -205,9 +202,9 @@ export default function AuthPage() {
                                 </div>
 
                                 <p className="text-center text-gray-400 text-sm">
-                                    Already in the darkness?{' '}
+                                    Already have an account?{' '}
                                     <button onClick={() => setCurrentPage('login')} className="text-orange-500 hover:text-red-500 font-semibold transition-colors">
-                                        Sign in here
+                                        Log in here
                                     </button>
                                 </p>
                             </div>
