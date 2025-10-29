@@ -1,27 +1,28 @@
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import Nav from "./components/Nav";
-import { toastError, toastLoading, ToastProvider, toastSuccess, toastWarning } from "./utils/Toast";
+import { AuthProvider, useAuth } from "./contexts/AuthProvider";
+import { ToastProvider } from "./utils/Toast";
 
 function App() {
   return (
     <BrowserRouter>
-      <Root />
-
-      <ToastProvider />
+      <AuthProvider >
+        <Root />
+        <ToastProvider />
+      </AuthProvider>
     </BrowserRouter>
-
   )
 }
 
 function Root() {
   const location = useLocation();
-  const shouldShowNav = location.pathname !== "*";
+  const { user } = useAuth();
+  const shouldShowNav = !!user;
 
   return (
     <>
       {shouldShowNav && <Nav />}
-
       <Routes>
         <Route path="/" element={<AuthPage />} />
       </Routes>
