@@ -4,12 +4,13 @@ import cors from 'cors';
 import { PORT } from './utils/constants';
 import cookieParser from "cookie-parser";
 
+import authRoute from './routes/auth.route'
+
 const app = express();
 
 app.use(cookieParser());
 
-
-const allowedOrigins = ['http://localhost:6669','https://home-fetest.ghelo.site'];
+const allowedOrigins = ['https://home-fetest.ghelonico.site', 'https://work-fe2.ghelonico.site'];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -21,12 +22,14 @@ app.use(cors({
         }
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization','platform'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'platform'],
     credentials: true,
 }));
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+
+app.use(`/api/auth`, authRoute)
 
 app.get('/', (req: Request, res: Response) => {
     return res.send('If you see this message. API IS WORKING!!');

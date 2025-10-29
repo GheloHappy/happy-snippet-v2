@@ -1,3 +1,4 @@
+import { getData, postData } from '@/utils/Fetcher';
 import { Smile } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -15,6 +16,47 @@ export default function AuthPage() {
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const initiateGoogleAuth = (fromPage: 'login' | 'register') => {
+        const state = btoa(JSON.stringify({ from: fromPage }));
+        const redirectUri = encodeURIComponent(window.location.origin); // auto: localhost:3000 or work-fe2...
+        const clientId = 'google';
+
+        const authUrl = `${import.meta.env.VITE_API_URL
+            }auth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=openid%20email%20profile`;
+
+        window.location.href = authUrl;
+    };
+
+    useEffect(() => {
+        const handleGoogleCallback = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+
+            // Only run if we came from Google
+            if (!code) return;
+
+            try {
+                const response = await postData('auth/token', { code, platform: 'web' });
+
+                if (response.data.access_token || response.data.success) {
+                    setIsLoggedIn(true);
+                    setCurrentPage('home');
+
+                    // Clean URL: remove ?code=...&state=...
+                    window.history.replaceState({}, '', window.location.pathname);
+                } else {
+                    console.error('Login failed:', response.data);
+                    // Optional: show error toast
+                }
+            } catch (err: any) {
+                console.error('Token exchange failed:', err.response?.data || err);
+                // Optional: show error
+            }
+        };
+
+        handleGoogleCallback();
     }, []);
 
     return (
@@ -83,7 +125,8 @@ export default function AuthPage() {
                                         </svg>
                                         <span>GitHub</span>
                                     </button>
-                                    <button className="flex items-center justify-center space-x-2 px-4 py-3 border-2 border-red-900/30 rounded-lg text-gray-300 hover:border-red-600 hover:text-red-400 transition-colors">
+                                    <button className="flex items-center justify-center space-x-2 px-4 py-3 border-2 border-red-900/30 rounded-lg text-gray-300 hover:border-red-600 hover:text-red-400 transition-colors"
+                                        onClick={() => initiateGoogleAuth('login')}>
                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />

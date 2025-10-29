@@ -8,6 +8,11 @@ function getEnvVar(name: string): string {
   return value;
 }
 
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+export const GOOGLE_REDIRECT_URI = `${process.env.BACKEND_URL}/api/auth/callback`;
+export const GOOGLE_OAUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+
 export const PORT = getEnvVar('PORT');
 
 export const database = getEnvVar('MY_DB');
