@@ -16,7 +16,6 @@ function App() {
 }
 
 function Root() {
-  const location = useLocation();
   const { user } = useAuth();
   const shouldShowNav = !!user;
 

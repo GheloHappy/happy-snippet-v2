@@ -1,7 +1,7 @@
 // src/components/Toast.tsx
 import toast, { type ToastOptions as BaseToastOptions, Toaster } from 'react-hot-toast';
 import { AlertCircle, CheckCircle, XCircle, Loader2, AlertTriangle } from 'lucide-react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 /* -------------------------------------------------
    Pick only the options we want to expose to callers
