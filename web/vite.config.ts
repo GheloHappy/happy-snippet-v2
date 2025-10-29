@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: parseInt(env.PORT),
-      allowedHosts: ['home-fetest.ghelo.site'],
+      allowedHosts: ['home-fetest.ghelonico.site', 'work-fe2.ghelonico.site'],
       host: true,
     }
   }

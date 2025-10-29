@@ -1,11 +1,7 @@
-import { MdOutlineMenu, MdClose } from "react-icons/md";
-import { AiOutlineHome, AiOutlineSnippets } from "react-icons/ai";
+
 
 export default function Nav() {
-    const navItems = [
-        { id: "home", name: "Home", icon: AiOutlineHome, path: "/home" },
-        { id: "snippets", name: "Snippets", icon: AiOutlineSnippets, path: "/snippets" },
-    ];
+    
     
     return (
         <>

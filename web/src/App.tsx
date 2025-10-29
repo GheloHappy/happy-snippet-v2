@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import AuthPage from "./pages/AuthPage";
 import Nav from "./components/Nav";
 
@@ -12,9 +12,13 @@ function App() {
 }
 
 function Root() {
+  const location = useLocation();
+  const shouldShowNav = location.pathname !== "*";
+
+  console.log(shouldShowNav)
   return (
     <>
-      <Nav />
+      {shouldShowNav && <Nav />}
       <Routes>
         <Route path="/" element={<AuthPage />} />
       </Routes>
