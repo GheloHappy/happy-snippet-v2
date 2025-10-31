@@ -19,7 +19,7 @@ interface AuthContextType {
     user: AuthUser | null;
     setUser: (user: AuthUser | null) => void;
     signIn: (fields: SignInFields) => Promise<void>;
-    googleSignIn: () => Promise<void>;
+    googleSignIn: (fromPage: string) => Promise<void>;
     signUp: (fields: SignUpFields) => Promise<boolean>;
     signOut: () => Promise<void>;
     isLoading: boolean;
@@ -50,8 +50,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     };
 
-    const googleSignIn = async () => {
+    const googleSignIn = async (fromPage: string) => {
+        const state = btoa(JSON.stringify({ from: fromPage }));
+        const redirectUri = encodeURIComponent(window.location.origin); // auto: localhost:3000 or work-fe2...
+        const clientId = 'google';
 
+        const authUrl = `${import.meta.env.VITE_API_URL
+            }auth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=openid%20email%20profile`;
+
+        window.location.href = authUrl;
     }
 
     const signUp = async (fields: SignUpFields): Promise<boolean> => {
