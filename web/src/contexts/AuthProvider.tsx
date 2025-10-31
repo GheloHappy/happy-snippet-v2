@@ -19,6 +19,7 @@ interface AuthContextType {
     user: AuthUser | null;
     setUser: (user: AuthUser | null) => void;
     signIn: (fields: SignInFields) => Promise<void>;
+    googleSignIn: () => Promise<void>;
     signUp: (fields: SignUpFields) => Promise<boolean>;
     signOut: () => Promise<void>;
     isLoading: boolean;
@@ -49,6 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     };
 
+    const googleSignIn = async () => {
+
+    }
+
     const signUp = async (fields: SignUpFields): Promise<boolean> => {
         return false
     }
@@ -58,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return (
         <AuthContext.Provider
-            value={{ user, setUser, signIn, signUp, signOut, isLoading }}
+            value={{ user, setUser, signIn, googleSignIn, signUp, signOut, isLoading }}
         >
             {children}
         </AuthContext.Provider>
