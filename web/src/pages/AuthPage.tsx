@@ -30,7 +30,7 @@ export default function AuthPage() {
 
             try {
                 const response = await postData('auth/token', { code, platform: 'web' });
-
+                console.log(response)
                 if (response.data.access_token || response.data.success) {
                     setIsLoggedIn(true);
                     setCurrentPage('home');
