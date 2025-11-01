@@ -13,6 +13,7 @@ import {
     REFRESH_TOKEN_EXPIRY,
     REFRESH_COOKIE_OPTIONS,
 } from '../../utils/constants.js';
+import { insertGoogleUser, verifyGoogleUser } from 'src/models/users.model.js';
 // import { insertGoogleUser, verifyGoogleUser } from "../../models/user-model.js";
 
 export type GoogleUser = {
@@ -78,23 +79,23 @@ export async function GoogleToken(req: Request, res: Response) {
     const issuedAt = Math.floor(Date.now() / 1000);
     const jti = crypto.randomUUID();
 
-    // const verify = await verifyGoogleUser(sub);
+    const verify = await verifyGoogleUser(sub);
 
-    // if (!verify.exist) {
-    //     const insertGoogleUserData = {
-    //         google_user_id: sub,
-    //         email: userInfo.email,
-    //         name: userInfo.name,
-    //         profile_picture_url: userInfo.picture,
-    //         created_at: new Date().toISOString(),
-    //         updated_at: new Date().toISOString(),
-    //     }
-    //     const insert_user = await insertGoogleUser(insertGoogleUserData as GoogleUser)
+    if (!verify.exist) {
+        const insertGoogleUserData = {
+            google_user_id: sub,
+            email: userInfo.email,
+            name: userInfo.name,
+            profile_picture_url: userInfo.picture,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+        }
+        const insert_user = await insertGoogleUser(insertGoogleUserData as GoogleUser)
 
-    //     if (!insert_user.status) {
-    //         return res.status(400).json({ error: 'User registration failed' });
-    //     }
-    // }
+        if (!insert_user.status) {
+            return res.status(400).json({ error: 'User registration failed' });
+        }
+    }
 
     const accessToken = await new jose.SignJWT(userInfoWithoutExp)
         .setProtectedHeader({ alg: 'HS256' })

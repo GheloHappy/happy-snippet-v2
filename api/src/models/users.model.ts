@@ -80,6 +80,24 @@ export const insertUser = async (data: User) => {
     }
 }
 
+export const verifyGoogleUser = async (google_id: string): Promise<{ msg: string, exist: boolean }> => {
+    try {
+        const query = `SELECT * FROM google_users
+                       WHERE google_user_id = $1`;
+
+        const result = await executeQuery(query, [google_id]);
+
+        if (result.rows.length > 0) {
+            return ({ msg: "User already exists", exist: true });
+        }
+
+        return ({ msg: "User does not exist", exist: false });
+    } catch (e) {
+        console.error('Error during verifyGoogleUser:', e);
+        return ({ msg: 'Error during verifyGoogleUser:', exist: false });
+    }
+}
+
 type AuthCheck = {
     username?: string;
     email?: string;
@@ -96,7 +114,7 @@ export const verifyUser = async (
         const result = await executeQuery(query, [auth.username, auth.email]);
 
         if (result.rows.length > 0) {
-            const user = result.rows[0]; 
+            const user = result.rows[0];
 
             if (isSignIn) {
                 if (!auth.password) {
