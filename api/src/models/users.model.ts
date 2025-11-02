@@ -57,7 +57,7 @@ export const insertGoogleUser = async (data: GoogleUser): Promise<{ msg: string,
     }
 };
 
-export const insertUser = async (data: User) => { //to update to auth_provider table
+export const insertUser = async (data: User) => { //to update to auth_provider table 
     const verify = await verifyUser({ username: data.username, email: data.email }, false);
 
     if (verify.existing) {
