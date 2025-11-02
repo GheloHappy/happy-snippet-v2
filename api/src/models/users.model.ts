@@ -32,7 +32,7 @@ export type User = {
 }
 
 
-export const insertGoogleUser = async (data: GoogleUser): Promise<{ msg: string, status: boolean }> => {
+export const insertGoogleUser = async (data: GoogleUser): Promise<{ msg: string, status: boolean }> => { //to update to auth_provider table
     try {
         const parameters = [
             data.google_user_id,
