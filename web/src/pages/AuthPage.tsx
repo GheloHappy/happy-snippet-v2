@@ -43,7 +43,7 @@ export default function AuthPage() {
                 }
             } catch (err: any) {
                 console.error('Token exchange failed:', err.response?.data || err);
-                // Optional: show error
+                // Optional: show error 
             }
         };
 
