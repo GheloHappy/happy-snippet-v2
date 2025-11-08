@@ -28,114 +28,104 @@ export type GoogleUser = {
 export type User = {
     username: string;
     email: string;
+    auth: string;
+    auth_description: string;
     password: string;
 }
 
+// --- Username Availability Check ---
+export const isUsernameTaken = async (
+    email: string,
+    excludeId?: number
+): Promise<boolean> => {
+    let query = `SELECT id FROM users WHERE email = $1`;
+    const params: any[] = [email];
 
-export const insertGoogleUser = async (data: GoogleUser): Promise<{ msg: string, status: boolean }> => { //to update to auth_provider table
+    if (excludeId) {
+        query += ` AND id != $2`;
+        params.push(excludeId);
+    }
+
+    const result = await executeQuery(query, params);
+    return result.rows.length > 0;
+};
+
+// --- Verify Login ---
+export const verifyLogin = async (
+    email: string,
+    password: string
+): Promise<User | null> => {
     try {
-        const parameters = [
-            data.google_user_id,
-            data.email,
-            data.name,
-            data.profile_picture_url,
-            data.created_at || new Date(),
-            data.updated_at || new Date()
-        ];
-        const query = 'INSERT INTO google_users (google_user_id, email, name, profile_picture_url, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING google_user_id';
+        const result = await executeQuery(
+            // `SELECT u.id, u.email, u.name, u.auth, u.auth_description, u.default_price_class, salesman_code, ap.password
+            //  FROM users u
+            //  JOIN auth_providers ap ON u.id = ap.user_id
+            //  WHERE u.email = $1 AND ap.provider = 'local'`,
+            `SELECT u.id, u.email, u.name, u.auth, u.auth_description, u.default_price_class, salesman_code, ap.password, ua.address, ua.city, ua.province, ua.zip_code 
+       FROM users u
+       JOIN auth_providers ap ON u.id = ap.user_id 
+       LEFT JOIN users_address as ua ON u.id = ua.user_id 
+       WHERE u.email = $1 AND ap.provider = 'local'`,
+            [email]
+        );
 
-        const result = await executeQuery(query, parameters);
+        const user = result.rows[0];
+        if (!user) return null;
 
-        if (result.rows.length > 0) {
-            return ({ msg: `User ${data.name} is successfully registered`, status: true });
-        } else {
-            return ({ msg: 'User registration failed', status: false });
-        }
-    } catch (e) {
-        console.error('Error during insert:', e);
-        return ({ msg: 'An error occurred during registration', status: false });
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) return null;
+
+        delete user.password;
+        return user;
+    } catch (error) {
+        console.error("VerifyLogin Error:", error);
+        return null;
     }
 };
 
-export const insertUser = async (data: User) => { //to update to auth_provider table
-    const verify = await verifyUser({ username: data.username, email: data.email }, false);
-
-    if (verify.existing) {
-        return { msg: verify.msg, status: false };
-    }
-
-    try {
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(data.password, salt);
-
-        const parameters = [data.username, data.email, hashedPassword];
-        const query = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)';
-
-        await executeQuery(query, parameters);
-
-        return { msg: `User ${data.username} is successfully registered`, status: true };
-    } catch (err) {
-        console.error(err);
-        return { msg: `Failed to register user.`, status: false };
-    }
+// --- Insert User ---
+interface InsertUserResponse {
+    msg: string;
+    success: boolean;
 }
 
-export const verifyGoogleUser = async (google_id: string): Promise<{ msg: string, exist: boolean }> => {
+export const insertUser = async (data: User): Promise<InsertUserResponse> => {
     try {
-        const query = `SELECT * FROM google_users
-                       WHERE google_user_id = $1`;
+        const taken = await isUsernameTaken(data.email);
+        if (taken) return { msg: "User already exists", success: false };
 
-        const result = await executeQuery(query, [google_id]);
+        // Step 1: Insert into users
+        const insertUserQuery = `
+      INSERT INTO users (email, name, auth, auth_description)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id
+    `;
+        const userResult = await executeQuery(insertUserQuery, [
+            data.email,
+            data.name,
+            data.auth,
+            data.auth_description
+        ]);
 
-        if (result.rows.length > 0) {
-            return ({ msg: "User already exists", exist: true });
+        if (userResult.rows.length === 0)
+            return { msg: "Creating user failed", success: false };
+
+        const userId = userResult.rows[0].id;
+
+        // Step 2: Insert into auth_providers (local)
+        if (data.password) {
+            const salt = await bcrypt.genSalt(12);
+            const hashedPassword = await bcrypt.hash(data.password, salt);
+
+            const insertAuthQuery = `
+        INSERT INTO auth_providers (user_id, provider, provider_user_id, password)
+        VALUES ($1, $2, $3, $4)
+      `;
+            await executeQuery(insertAuthQuery, [userId, "local", userResult.google_user_id, hashedPassword]);
         }
-
-        return ({ msg: "User does not exist", exist: false });
-    } catch (e) {
-        console.error('Error during verifyGoogleUser:', e);
-        return ({ msg: 'Error during verifyGoogleUser:', exist: false });
-    }
-}
-
-type AuthCheck = {
-    username?: string;
-    email?: string;
-    password?: string;
-}
-
-
-export const verifyUser = async (
-    auth: AuthCheck,
-    isSignIn: boolean
-): Promise<{ msg: string; existing: boolean; status: boolean; result: any }> => {
-    try {
-        const query = 'SELECT * FROM users WHERE username = $1 OR email = $2';
-        const result = await executeQuery(query, [auth.username, auth.email]);
-
-        if (result.rows.length > 0) {
-            const user = result.rows[0];
-
-            if (isSignIn) {
-                if (!auth.password) {
-                    return { msg: 'Password is required.', existing: false, status: false, result: [] };
-                }
-
-                const isPasswordValid = await bcrypt.compare(auth.password, user.password);
-
-                if (isPasswordValid) {
-                    return { msg: 'User is successfully logged in.', existing: false, status: true, result: user };
-                }
-
-                return { msg: 'Invalid username or password', existing: false, status: false, result: [] };
-            }
-
-            return { msg: 'Email/Username is not available.', existing: true, status: false, result: [] };
-        }
-
-        return { msg: 'User does not exist.', existing: false, status: false, result: [] };
-    } catch (err) {
-        console.error(err);
-        return { msg: 'Error verifying user.', existing: false, status: false, result: [] };
+        return { msg: "User created successfully", success: true };
+    } catch (error) {
+        console.error("InsertUser Error:", error);
+        return { msg: "An error occurred during user creation", success: false };
     }
 };
