@@ -142,6 +142,7 @@ export const insertUser = async (data: User): Promise<InsertUserResponse> => {
             provider,
             providerUserId,
             password,
+            profilePictureUrl,
             createdAt,
             updatedAt,
         ]);

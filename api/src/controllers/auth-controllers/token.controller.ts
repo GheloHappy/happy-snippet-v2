@@ -105,7 +105,6 @@ export async function GoogleToken(req: Request, res: Response) {
         given_name: userInfo.given_name,
         family_name: userInfo.family_name,
         email_verified: userInfo.email_verified,
-        //isGoogle: true,
     })
         .setProtectedHeader({ alg: 'HS256' })
         .setExpirationTime(REFRESH_TOKEN_EXPIRY)
