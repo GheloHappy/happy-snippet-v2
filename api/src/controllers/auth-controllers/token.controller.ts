@@ -13,18 +13,7 @@ import {
     REFRESH_TOKEN_EXPIRY,
     REFRESH_COOKIE_OPTIONS,
 } from '../../utils/constants.js';
-import { insertGoogleUser, verifyGoogleUser } from 'src/models/users.model.js';
-// import { insertGoogleUser, verifyGoogleUser } from "../../models/user-model.js";
-
-export type GoogleUser = {
-    id: string;
-    google_user_id: string;
-    email: string;
-    name?: string;
-    profile_picture_url?: string;
-    created_at: string;
-    updated_at: string;
-}
+import { getUsersInfoById, insertUser, User } from 'src/models/users.model.js';
 
 interface GoogleOAuthResponse {
     access_token?: string;
@@ -79,20 +68,22 @@ export async function GoogleToken(req: Request, res: Response) {
     const issuedAt = Math.floor(Date.now() / 1000);
     const jti = crypto.randomUUID();
 
-    const verify = await verifyGoogleUser(sub);
+    const verify = await getUsersInfoById(sub);
 
-    if (!verify.exist) {
+    if (!verify) {
         const insertGoogleUserData = {
-            google_user_id: sub,
+            providerUserId: sub,
             email: userInfo.email,
             name: userInfo.name,
-            profile_picture_url: userInfo.picture,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            auth: 2,
+            authDescription: 'google',
+            profilePictureUrl: userInfo.picture,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
         }
-        const insert_user = await insertGoogleUser(insertGoogleUserData as GoogleUser)
+        const result = await insertUser(insertGoogleUserData as User)
 
-        if (!insert_user.status) {
+        if (!result.success) {
             return res.status(400).json({ error: 'User registration failed' });
         }
     }

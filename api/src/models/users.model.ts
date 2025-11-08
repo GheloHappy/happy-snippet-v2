@@ -1,6 +1,7 @@
-import bcrypt from "node_modules/bcryptjs";
+import bcrypt from "bcryptjs";
 import { getClient } from "src/db/client";
 
+// --- Utility: Execute Query ---
 export const executeQuery = async (
     query: string,
     inputParameters: any[] = []
@@ -15,25 +16,22 @@ export const executeQuery = async (
     }
 };
 
-export type GoogleUser = {
-    id: string;
-    google_user_id: string;
+// --- Types ---
+export type User = {
+    id?: number;
+    username?: string;
     email: string;
     name?: string;
-    profile_picture_url?: string;
-    created_at: string;
-    updated_at: string;
-}
+    auth: number; // e.g. 0 = local, 1 = google, etc.
+    authDescription: string; // 'local' | 'google' | 'facebook'
+    password?: string;
+    providerUserId?: string;
+    profilePictureUrl?: string;
+    createdAt?: string;
+    updatedAt?: string;
+};
 
-export type User = {
-    username: string;
-    email: string;
-    auth: string;
-    auth_description: string;
-    password: string;
-}
-
-// --- Username Availability Check ---
+// --- Check if Email Exists ---
 export const isUsernameTaken = async (
     email: string,
     excludeId?: number
@@ -50,30 +48,31 @@ export const isUsernameTaken = async (
     return result.rows.length > 0;
 };
 
-// --- Verify Login ---
+// --- Verify Login (Local Only) ---
 export const verifyLogin = async (
     email: string,
     password: string
 ): Promise<User | null> => {
     try {
         const result = await executeQuery(
-            // `SELECT u.id, u.email, u.name, u.auth, u.auth_description, u.default_price_class, salesman_code, ap.password
-            //  FROM users u
-            //  JOIN auth_providers ap ON u.id = ap.user_id
-            //  WHERE u.email = $1 AND ap.provider = 'local'`,
-            `SELECT u.id, u.email, u.name, u.auth, u.auth_description, u.default_price_class, salesman_code, ap.password, ua.address, ua.city, ua.province, ua.zip_code 
-       FROM users u
-       JOIN auth_providers ap ON u.id = ap.user_id 
-       LEFT JOIN users_address as ua ON u.id = ua.user_id 
-       WHERE u.email = $1 AND ap.provider = 'local'`,
+            `
+      SELECT u.id, u.email, u.name, u.auth, u.auth_description,
+             ap.password, ap.provider, ap.provider_user_id, ap.profile_picture_url
+      FROM users u
+      JOIN auth_providers ap ON u.id = ap.user_id
+      WHERE u.email = $1
+    `,
             [email]
         );
 
         const user = result.rows[0];
         if (!user) return null;
 
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return null;
+        // Only check password for local users
+        if (user.provider === "local") {
+            const valid = await bcrypt.compare(password, user.password);
+            if (!valid) return null;
+        }
 
         delete user.password;
         return user;
@@ -83,7 +82,7 @@ export const verifyLogin = async (
     }
 };
 
-// --- Insert User ---
+// --- Insert User (Handles Local & Social) ---
 interface InsertUserResponse {
     msg: string;
     success: boolean;
@@ -94,17 +93,17 @@ export const insertUser = async (data: User): Promise<InsertUserResponse> => {
         const taken = await isUsernameTaken(data.email);
         if (taken) return { msg: "User already exists", success: false };
 
-        // Step 1: Insert into users
+        // Step 1: Insert into `users`
         const insertUserQuery = `
       INSERT INTO users (email, name, auth, auth_description)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4)
       RETURNING id
     `;
         const userResult = await executeQuery(insertUserQuery, [
             data.email,
-            data.name,
+            data.name || "",
             data.auth,
-            data.auth_description
+            data.authDescription,
         ]);
 
         if (userResult.rows.length === 0)
@@ -112,20 +111,59 @@ export const insertUser = async (data: User): Promise<InsertUserResponse> => {
 
         const userId = userResult.rows[0].id;
 
-        // Step 2: Insert into auth_providers (local)
-        if (data.password) {
-            const salt = await bcrypt.genSalt(12);
-            const hashedPassword = await bcrypt.hash(data.password, salt);
+        // Step 2: Insert into `auth_providers`
+        let provider = "local";
+        let password: string | null = null;
+        let providerUserId: string | null = null;
+        let profilePictureUrl: string | null = null;
+        let createdAt: string = new Date().toISOString();
+        let updatedAt: string = new Date().toISOString();
 
-            const insertAuthQuery = `
-        INSERT INTO auth_providers (user_id, provider, provider_user_id, password)
-        VALUES ($1, $2, $3, $4)
-      `;
-            await executeQuery(insertAuthQuery, [userId, "local", userResult.google_user_id, hashedPassword]);
+        if (data.authDescription === "local") {
+            provider = "local";
+            if (data.password) {
+                const salt = await bcrypt.genSalt(12);
+                password = await bcrypt.hash(data.password, salt);
+            }
+        } else {
+            provider = data.authDescription; // e.g. 'google'
+            providerUserId = data.providerUserId || null;
+            profilePictureUrl = data.profilePictureUrl || null;
+            createdAt = data.createdAt || new Date().toISOString();
+            updatedAt = data.updatedAt || new Date().toISOString();
         }
+
+        const insertAuthQuery = `
+      INSERT INTO auth_providers (user_id, provider, provider_user_id, password, profile_picture_url, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `;
+        await executeQuery(insertAuthQuery, [
+            userId,
+            provider,
+            providerUserId,
+            password,
+            createdAt,
+            updatedAt,
+        ]);
+
         return { msg: "User created successfully", success: true };
     } catch (error) {
         console.error("InsertUser Error:", error);
         return { msg: "An error occurred during user creation", success: false };
     }
+};
+
+
+export const getUsersInfoById = async (id: number): Promise<User | null> => {
+  try { //ua.contact missing
+    const query = `SELECT u.id, u.email, u.name, u.auth, u.auth_description, ap.provider, ap.provider_user_id, ap.profile_picture_url
+       FROM users u 
+       JOIN auth_providers ap ON u.id = ap.user_id WHERE u.id = $1`;
+    const result = await executeQuery(query, [id]);
+
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error("GetUserInfoById Error:", error);
+    return null;
+  }
 };
