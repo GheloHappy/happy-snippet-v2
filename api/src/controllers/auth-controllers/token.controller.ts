@@ -13,7 +13,7 @@ import {
     REFRESH_TOKEN_EXPIRY,
     REFRESH_COOKIE_OPTIONS,
 } from '../../utils/constants.js';
-import { getUsersInfoById, insertUser, User } from 'src/models/users.model.js';
+import { getUsersInfoByProviderId, insertUser, User } from 'src/models/users.model.js';
 
 interface GoogleOAuthResponse {
     access_token?: string;
@@ -68,7 +68,7 @@ export async function GoogleToken(req: Request, res: Response) {
     const issuedAt = Math.floor(Date.now() / 1000);
     const jti = crypto.randomUUID();
 
-    const verify = await getUsersInfoById(sub);
+    const verify = await getUsersInfoByProviderId(sub);
 
     if (!verify) {
         const insertGoogleUserData = {

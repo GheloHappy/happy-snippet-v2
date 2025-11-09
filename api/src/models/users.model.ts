@@ -155,11 +155,11 @@ export const insertUser = async (data: User): Promise<InsertUserResponse> => {
 };
 
 
-export const getUsersInfoById = async (id: number): Promise<User | null> => {
+export const getUsersInfoByProviderId = async (id: number): Promise<User | null> => {
   try { //ua.contact missing
     const query = `SELECT u.id, u.email, u.name, u.auth, u.auth_description, ap.provider, ap.provider_user_id, ap.profile_picture_url
        FROM users u 
-       JOIN auth_providers ap ON u.id = ap.user_id WHERE u.id = $1`;
+       JOIN auth_providers ap ON u.id = ap.user_id WHERE ap.provider_user_id = $1`;
     const result = await executeQuery(query, [id]);
 
     return result.rows.length > 0 ? result.rows[0] : null;
