@@ -1,10 +1,12 @@
 import { useAuth } from '@/contexts/AuthProvider';
 import { getData, postData } from '@/utils/Fetcher';
+import { toastError } from '@/utils/Toast';
 import { Smile } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 export default function AuthPage() {
-    const { googleSignIn } = useAuth();
+    const { googleSignIn, signIn, signUp } = useAuth();
     const [currentPage, setCurrentPage] = useState('login');
     const [isMobile, setIsMobile] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,10 +42,11 @@ export default function AuthPage() {
                 } else {
                     console.error('Login failed:', response.data);
                     // Optional: show error toast
+                    toastError('Google sign-in failed. Please try again.');
                 }
             } catch (err: any) {
                 console.error('Token exchange failed:', err.response?.data || err);
-                // Optional: show error 
+                toastError('Google sign-in failed. Please try again.');
             }
         };
 
@@ -94,7 +97,7 @@ export default function AuthPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => { setIsLoggedIn(true); setCurrentPage('home'); }}
+                                    onClick={() => { signIn ({ email: '', password: '' }); }}
                                     className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg shadow-red-900/50"
                                 >
                                     Sign In
@@ -146,7 +149,7 @@ export default function AuthPage() {
                             <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-2">
                                 Create Your Account
                             </h1>
-                            <p className="text-gray-400">Create your account to start coding</p>
+                            <p className="text-gray-400">Create your account to start snipping</p>
                         </div>
 
                         <div className="bg-gray-900 rounded-2xl shadow-2xl border border-red-900/30 p-8">
@@ -187,7 +190,7 @@ export default function AuthPage() {
                                     />
                                 </div>
 
-                                <div className="flex items-start space-x-2">
+                                {/* <div className="flex items-start space-x-2">
                                     <input type="checkbox" className="w-4 h-4 mt-1 text-red-600 rounded bg-gray-950 border-red-900" />
                                     <label className="text-gray-400 text-sm">
                                         I accept the{' '}
@@ -199,7 +202,7 @@ export default function AuthPage() {
                                             Privacy Policy
                                         </button>
                                     </label>
-                                </div>
+                                </div> */}
 
                                 <button
                                     onClick={() => { setIsLoggedIn(true); setCurrentPage('home'); }}

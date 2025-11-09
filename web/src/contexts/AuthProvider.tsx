@@ -1,3 +1,4 @@
+import { toastWarning } from "@/utils/Toast";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +19,7 @@ export type AuthUser = {
 interface AuthContextType {
     user: AuthUser | null;
     setUser: (user: AuthUser | null) => void;
-    signIn: (fields: SignInFields) => Promise<void>;
+    signIn: (fields: SignInFields) => Promise<boolean>;
     googleSignIn: (fromPage: string) => Promise<void>;
     signUp: (fields: SignUpFields) => Promise<boolean>;
     signOut: () => Promise<void>;
@@ -47,7 +48,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const navigate = useNavigate();
 
     const signIn = async (fields: SignInFields) => {
+        const allFieldsFilled = Object.values(fields).every(
+            (field) => field.trim() !== ""
+        );
 
+        if (!allFieldsFilled) {
+            toastWarning("Please fill in all fields.");
+            return false;
+        }
+        return true;
     };
 
     const googleSignIn = async (fromPage: string) => {
@@ -62,6 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const signUp = async (fields: SignUpFields): Promise<boolean> => {
+        const allFieldsFilled = Object.values(fields).every(
+            (field) => field.trim() !== ""
+        );
+
+        if (!allFieldsFilled) {
+            toastWarning("Please fill in all fields.");
+            return false;
+        }
+
         return false
     }
 
