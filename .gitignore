@@ -6,12 +6,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+.expo/
+
 /ios
 /android
 
 #ignoring image uploads of products
-api/uploads/*
-!api/uploads/.gitkeep
+#api/uploads/*
+#!api/uploads/.gitkeep
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -144,3 +146,37 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+#Fast API
+# Virtual environment
+.venv/
+venv/
+
+# Byte-code files
+__pycache__/
+*.pyc
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.bak
+*.swo
+
+# Environment variables and secrets
+.env
+.flaskenv
+instance/
+secrets.py
+config.ini
+
+# Database files (if using SQLite or similar local databases)
+*.sqlite3
+*.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.coverage
