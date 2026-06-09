@@ -1,47 +1,28 @@
-import { connect, type ConnectionPool, type IResult } from 'mssql';
-import { DB_NAME, DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT } from 'src/config/constants';
+import { Pool } from 'pg';
+import { DB_USER, DB_PASSWORD, DB_NAME, DB_SERVER, DB_PORT } from 'src/config/constants';
 
-const config = {
+const pool = new Pool({
   user: DB_USER,
-  password: DB_PASSWORD,
-  server: DB_SERVER,
+  host: DB_SERVER,
   database: DB_NAME,
+  password: DB_PASSWORD,
   port: DB_PORT,
-  options: {
-    encrypt: false,
-    trustServerCertificate: true,
-  },
-  pool: {
-    max: 20,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-} satisfies Parameters<typeof connect>[0];
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
-let pool: ConnectionPool | null = null;
-
-export const getPool = async (): Promise<ConnectionPool> => {
-  if (!pool) {
-    pool = await connect(config);
-  }
-  return pool;
-};
-
-export const executeQuery = async <T = any>(
-  query: string,
-  params?: { name: string; type: any; value: any }[]
-): Promise<IResult<T>> => {
+export const executeQuery = async (text: string, params?: any[]) => {
   try {
-    const connection = await getPool();
-    const request = connection.request();
-    if (params) {
-      for (const param of params) {
-        request.input(param.name, param.type, param.value);
-      }
-    }
-    return await request.query<T>(query);
+    const result = await pool.query(text, params);
+    return result;
   } catch (error) {
     console.error('Database query error:', error);
     throw error;
   }
+};
+
+export const getClient = async () => {
+  const client = await pool.connect();
+  return client;
 };

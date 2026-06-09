@@ -1,326 +1,111 @@
-import { getPool } from "src/db";
+import { getClient } from "src/db/index";
 
-interface TableColumn {
-  name: string;
-  type: string;
-  isNullable: boolean;
-  default?: string | number | boolean;
-}
-
-interface TableDefinition {
-  name: string;
-  columns: TableColumn[];
-}
-
-interface ViewDefinition {
-  name: string;
-  query: string;
-}
-
-interface IndexDefinition {
-  table: string;
-  name: string;
-  columns: string[];
-  isUnique?: boolean;
-}
-
-const tables: TableDefinition[] = [
-  {
-    name: "users",
-    columns: [
-      { name: "id", type: "INT IDENTITY(1,1) PRIMARY KEY", isNullable: false },
-      { name: "username", type: "NVARCHAR(50) UNIQUE", isNullable: false },
-      { name: "password", type: "NVARCHAR(255)", isNullable: false },
-      { name: "name", type: "NVARCHAR(100)", isNullable: false },
-      { name: "department", type: "NVARCHAR(50)", isNullable: false },
-      {
-        name: "role",
-        type: "NVARCHAR(20) CHECK (role IN ('USER','ADMIN','SUPERADMIN'))",
-        isNullable: false,
-      },
-      {
-        name: "is_active",
-        type: "BIT",
-        isNullable: false,
-        default: 1,
-      },
-      {
-        name: "created_at",
-        type: "DATETIME",
-        isNullable: false,
-        default: "GETDATE()",
-      },
-    ],
-  },
-  {
-    name: "audit_logs",
-    columns: [
-      { name: "id", type: "INT IDENTITY(1,1) PRIMARY KEY", isNullable: false },
-      { name: "user_id", type: "INT", isNullable: true },
-      { name: "username", type: "NVARCHAR(50)", isNullable: true },
-      { name: "action", type: "NVARCHAR(20)", isNullable: false },
-      { name: "table_name", type: "NVARCHAR(50)", isNullable: false },
-      { name: "record_id", type: "INT", isNullable: true },
-      { name: "old_values", type: "NVARCHAR(MAX)", isNullable: true },
-      { name: "new_values", type: "NVARCHAR(MAX)", isNullable: true },
-      {
-        name: "created_at",
-        type: "DATETIME",
-        isNullable: false,
-        default: "GETDATE()",
-      },
-    ],
-  },
-];
-
-const indexes: IndexDefinition[] = [
-  // {
-  //   table: "bank_transactions",
-  //   name: "uq_bank_transactions_unique",
-  //   columns: [
-  //     "bank_name",
-  //     "account_number",
-  //     "posting_date",
-  //     "description",
-  //     "debit",
-  //     "credit",
-  //     "balance",
-  //   ],
-  //   isUnique: true,
-  // },
-];
-
-const views: ViewDefinition[] = [];
-
-/* =========================
-   TABLE FUNCTIONS
-========================= */
-
-const doesTableExist = async (tableName: string): Promise<boolean> => {
-  try {
-    const pool = await getPool();
-
-    const result = await pool.request().query(`
-      SELECT 1
-      FROM INFORMATION_SCHEMA.TABLES
-      WHERE TABLE_NAME = N'${tableName}'
-    `);
-
-    return result.recordset.length > 0;
-  } catch (error) {
-    console.error(`Error checking table ${tableName}:`, error);
-    return false;
-  }
-};
-
-const createTable = async (
-  tableName: string,
-  columns: TableColumn[],
-): Promise<void> => {
-  try {
-    const pool = await getPool();
-    const request = pool.request();
-
-    const columnsDefinition = columns
-      .map((col) => {
-        const nullable = col.isNullable ? "NULL" : "NOT NULL";
-
-        let defaultValue = "";
-
-        if (col.default !== undefined) {
-          if (
-            typeof col.default === "string" &&
-            col.default.toUpperCase() === "GETDATE()"
-          ) {
-            defaultValue = ` DEFAULT GETDATE()`;
-          } else if (typeof col.default === "string") {
-            defaultValue = ` DEFAULT '${col.default}'`;
-          } else if (typeof col.default === "boolean") {
-            defaultValue = ` DEFAULT ${col.default ? 1 : 0}`;
-          } else {
-            defaultValue = ` DEFAULT ${col.default}`;
-          }
-        }
-
-        return `${col.name} ${col.type}${defaultValue} ${nullable}`;
-      })
-      .join(", ");
-
-    const query = `
-      CREATE TABLE ${tableName} (
-        ${columnsDefinition}
-      )
-    `;
-
-    await request.query(query);
-
-    console.log(`✅ Table ${tableName} created`);
-  } catch (error) {
-    console.error(`❌ Error creating table ${tableName}:`, error);
-  }
-};
-
-const createTableIfNotExists = async (
-  tableName: string,
-  columns: TableColumn[],
+const createTables = async (
+  client: ReturnType<typeof getClient> extends Promise<infer U> ? U : never,
 ) => {
-  const exists = await doesTableExist(tableName);
-
-  if (!exists) {
-    await createTable(tableName, columns);
-  } else {
-    console.log(`ℹ️ Table ${tableName} already exists`);
-  }
-};
-
-/* =========================
-   INDEX FUNCTIONS
-========================= */
-
-const createIndexIfNotExists = async (
-  table: string,
-  name: string,
-  columns: string[],
-  isUnique: boolean = false,
-) => {
-  try {
-    const pool = await getPool();
-    const request = pool.request();
-
-    const columnList = columns.join(", ");
-    const unique = isUnique ? "UNIQUE" : "";
-
-    const query = `
-      IF NOT EXISTS (
-        SELECT 1
-        FROM sys.indexes
-        WHERE name = '${name}'
-        AND object_id = OBJECT_ID('${table}')
-      )
-      BEGIN
-        CREATE ${unique} INDEX ${name}
-        ON ${table} (${columnList})
-      END
-    `;
-
-    await request.query(query);
-
-    console.log(`✅ Index ${name} created`);
-  } catch (error) {
-    console.error(`❌ Error creating index ${name}:`, error);
-  }
-};
-
-/* =========================
-   VIEW FUNCTIONS
-========================= */
-
-const doesViewExist = async (viewName: string): Promise<boolean> => {
-  try {
-    const pool = await getPool();
-
-    const result = await pool.request().query(`
-      SELECT 1
-      FROM INFORMATION_SCHEMA.VIEWS
-      WHERE TABLE_NAME = N'${viewName}'
-    `);
-
-    return result.recordset.length > 0;
-  } catch (error) {
-    console.error(`Error checking view ${viewName}:`, error);
-    return false;
-  }
-};
-
-const createView = async (viewName: string, query: string) => {
-  try {
-    const pool = await getPool();
-    const request = pool.request();
-
-    const fullName = `dbo.${viewName}`;
-
-    await request.query(`
-      IF OBJECT_ID('${fullName}', 'V') IS NOT NULL
-        DROP VIEW ${fullName};
-    `);
-
-    const escapedQuery = query.replace(/'/g, "''");
-
-    await request.query(`
-      EXEC('CREATE VIEW ${fullName} AS ${escapedQuery}')
-    `);
-
-    console.log(`✅ View ${viewName} created`);
-  } catch (error) {
-    console.error(`❌ Error creating view ${viewName}:`, error);
-  }
-};
-
-const createViewIfNotExists = async (
-  viewName: string,
-  query: string,
-) => {
-  const exists = await doesViewExist(viewName);
-
-  if (!exists) {
-    await createView(viewName, query);
-  } else {
-    console.log(`ℹ️ View ${viewName} already exists`);
-  }
-};
-
-/* =========================
-   MIGRATION RUNNER
-========================= */
-
-const runMigration = async () => {
-  console.log(`\n🔧 Running migration...`);
+  const tables = [
+    {
+      name: "users",
+      columns: [
+        { name: "id", type: "serial PRIMARY KEY" },
+        { name: "email", type: "VARCHAR(255) UNIQUE NOT NULL" },
+        { name: "name", type: "VARCHAR(255) NOT NULL" },
+        { name: "profile_picture_url", type: "TEXT" },
+        { name: "status", type: "VARCHAR(50) DEFAULT 'active'" },
+        { name: "created_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+        { name: "updated_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+      ],
+    },
+    {
+      name: "auth_providers",
+      columns: [
+        { name: "id", type: "serial PRIMARY KEY" },
+        { name: "user_id", type: "INTEGER NOT NULL" },
+        { name: "provider", type: "VARCHAR(50) NOT NULL" },
+        { name: "provider_user_id", type: "VARCHAR(255)" },
+        { name: "password", type: "VARCHAR(255)" },
+        { name: "created_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+        { name: "updated_at", type: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP" },
+      ],
+      constraints: [
+        "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+        "UNIQUE (provider, provider_user_id)",
+        "CHECK (provider IN ('email', 'google', 'facebook', 'github'))",
+      ],
+    },
+  ];
 
   for (const table of tables) {
-    await createTableIfNotExists(table.name, table.columns);
+    const columnsDefinition = table.columns
+      .map((col) => `${col.name} ${col.type}`)
+      .join(", ");
+
+    const constraintsDefinition = table.constraints
+      ? `, ${table.constraints.join(", ")}`
+      : "";
+
+    const createTableQuery = `CREATE TABLE IF NOT EXISTS ${table.name} (${columnsDefinition}${constraintsDefinition})`;
+
+    await client.query(createTableQuery);
+    console.log(`Table ${table.name} created successfully`);
   }
 
-  for (const index of indexes) {
-    await createIndexIfNotExists(
-      index.table,
-      index.name,
-      index.columns,
-      index.isUnique,
-    );
-  }
+  // Create updated_at trigger function
+  await client.query(`
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = CURRENT_TIMESTAMP;
+      RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+  `);
 
-  for (const view of views) {
-    await createViewIfNotExists(view.name, view.query);
+  // Create triggers for updated_at columns
+  const tablesWithTimestamps = ["users", "auth_providers"];
+  for (const tableName of tablesWithTimestamps) {
+    await client.query(`
+      CREATE OR REPLACE TRIGGER set_${tableName}_updated_at
+      BEFORE UPDATE ON ${tableName}
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+    `);
+    console.log(`Trigger for ${tableName}.updated_at created successfully`);
   }
-
-  //Insert Defaults
-  // const pool = await getPool();
-  //
-  // await pool.request().query(`
-  //   IF NOT EXISTS (SELECT 1 FROM prefix_lists)
-  //   BEGIN
-  //     INSERT INTO prefix_lists (prefix, description)
-  //     VALUES
-  //       ('B2B', NULL),
-  //       ('SRA', NULL),
-  //       ('REG', NULL),
-  //       ('DDT', NULL),
-  //       ('ICT', NULL),
-  //       ('OBT', NULL),
-  //       ('OSD', NULL),
-  //       ('OTH', NULL);
-  //   END
-  // `);
-  //
-  // await pool.close();
-  //
-  console.log(`✅ Migration completed`);
 };
 
-/* =========================
-   EXECUTE
-========================= */
+const createViews = async (
+  client: ReturnType<typeof getClient> extends Promise<infer U> ? U : never,
+) => {
+  const views: { name: string; query: string }[] = [];
 
-(async () => {
-  await runMigration();
-})();
+  for (const view of views) {
+    await client.query(view.query);
+    console.log(`View ${view.name} created successfully`);
+  }
+};
+
+const runMigration = async () => {
+  const client = await getClient();
+
+  try {
+    await client.query("BEGIN");
+    console.log("Transaction started");
+
+    await createTables(client);
+    await createViews(client);
+
+    await client.query("COMMIT");
+    console.log("Transaction committed");
+    console.log("✅ Migration completed");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("Transaction rolled back due to error:", error);
+    console.error("❌ Migration failed");
+  } finally {
+    await client.release();
+    console.log("Client connection closed");
+  }
+};
+
+runMigration();
