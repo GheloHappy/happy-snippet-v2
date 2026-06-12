@@ -103,7 +103,7 @@ const runMigration = async () => {
     console.error("Transaction rolled back due to error:", error);
     console.error("❌ Migration failed");
   } finally {
-    await client.release();
+    client.release();
     console.log("Client connection closed");
   }
 };

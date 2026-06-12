@@ -35,11 +35,11 @@ app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoute);
 
-app.get("/api/version", (req: Request, res: Response) => {
+app.get("/api/version", (_req: Request, res: Response) => {
   res.json({ version: APP_VERSION });
 });
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   return res.send("If you see this message. API IS WORKING!!");
 });
 

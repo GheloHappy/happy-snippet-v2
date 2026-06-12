@@ -10,19 +10,16 @@ export const findUser = async ({
   username?: string;
 }): Promise<User | null> => {
   try {
-    const condition = id ? "id = @id" : "username = @username";
+    const condition = id ? "id = $1" : "username = $1";
 
     const query = `
       SELECT id, username, name, password, department, role FROM users
       WHERE ${condition}
     `;
 
-    const result = await executeQuery(query, [
-      ...(id != null ? [{ name: "id", type: undefined, value: id }] : []),
-      ...(username != null ? [{ name: "username", type: undefined, value: username }] : []),
-    ]);
+    const result = await executeQuery(query, [id ?? username]);
 
-    return result.recordset[0] ?? null;
+    return result.rows[0] ?? null;
   } catch (error) {
     console.error("findUser", error);
     throw error;
